@@ -24,7 +24,6 @@ var direction = {
 	downleft: 1,
 	downright: 1
 };
-var chosenpiece;
 
 var load = false;
 var casesize = 500/numbercase;
@@ -32,12 +31,13 @@ function boardbase(){
 	for(var i = 0; i < numbercase; i++){
 		for (var j = 0; j < numbercase; j++) {
 			if((i+j)%2 == 1){
-			brd.fillStyle = "#095eff";
-			}else{brd.fillStyle = "#d4c9a1";}
+			brd.fillStyle = "#5f1a09";
+			}else{brd.fillStyle = "#aa0000";}
 			brd.fillRect(casesize*i,casesize*j,casesize,casesize);
 		}
 	}
 }
+boardbase();
 boardbase();
 var pionNoir = {
 	img: new Image(),
@@ -134,7 +134,7 @@ function play(){
 		//afficher dot
 		for(var i = 1; i <= 8 ;i++){
 			for (var j = 1; j <= 8; j++) {
-				if(posmove[i][j] == 'possiblemove'){
+				if(posmove[i][j] == 'possible'){
 					drawdot(i,j);
 				}
 			}
@@ -142,32 +142,30 @@ function play(){
 	}else{setTimeout(function(){play();},1);}
 }
 	play();
-	function reversecolor(color){
-		if (color == 'noir'){return 'blanc';}
-			else{return 'noir';}
+	function reversecolor(piece){
+		if (piece.color == 'noir'){return 'blanc';}
+			else if(piece.color == 'blanc'){return 'noir';}
 	}
 	function drawdot(x,y){
-		dot.fillStyle ="#aa0000";
+		dot.fillStyle ="#21bd20";
 		dot.beginPath();
 		dot.arc(casesize*(x-1) + (casesize/2),casesize*(y-1) + (casesize/2), 10, 0, 360);
 		dot.fill();
 	}
-function posattack(posx, addx,posy,addy,parlas){
-	if(posx + addx > 0 && posx + addx <= 8 && posy + addy > 0 && posy + addy <= 8 && direction[parlas] > 0){
-		var dotpos = piecein[posx + addx][posy + addy];
-		var initpos = piecein[posx][posy];
-		if(dotpos.color == initpos.color){
-			direction[parlas] = 0;
-		}else if(dotpos.color == 'rien'){
-			direction[parlas] = 1;
-			posmove[posx+addx][posy+addy] = 'possiblemove';
-		}else if(dotpos.color == reversecolor(initpos.color)){
-			direction[parlas] = 2;
-			posmove[posx+addx][posy+addy] = 'possiblemove';
-		}else{posmove[posx+addx][posy+addy] = 'possiblemove';}
-		if(direction[parlas] == 2){
+function possiblemove(posx, addx,posy,addy,parlas){
+
+	if(posx+addx < 9 && posx+addx > 0 && posy+addy < 9 && posy+addy > 0){
+		if(piecein[posx][posy].color == piecein[posx+addx][posy+addy].color){
+			console.log(posx,addx,posy,addy);
 			direction[parlas] = 0;
 		}
+		if(direction[parlas] == 1){
+			posmove[posx+addx][posy+addy] = 'possible';
+		}
+		if(piecein[posx][posy].color == reversecolor(piecein[posx+addx][posy+addy])){
+			direction[parlas] = 0;
+		}
+
 	}
 }
 	function casechoose(event){
@@ -175,21 +173,29 @@ function posattack(posx, addx,posy,addy,parlas){
 		var y = event.clientY - marge;
 		mousex = Math.trunc(x/casesize);
 		mousey = Math.trunc(y/casesize);
-		if(posmove[mousex+1][mousey+1] == 'possiblemove'){
+		if(posmove[mousex+1][mousey+1] == 'possible'){
 			piecein [mousex+1][mousey+1] = piecein[playpiecex][playpiecey];
 			piecein [prevposx+1][prevposy+1] = 'rien';
 			whiteisplaying = (whiteisplaying+1)%2;
-			console.log(whiteisplaying);
-			cleararray(posmove);
-		}else if(piecein[mousex+1][mousey+1].color != piecein [prevposx+1][prevposy+1].color){
 			cleararray(posmove);
 		}
 		prevposx = mousex;
 		prevposy = mousey;
 		boardbase();
-		brd.fillStyle = "#aa0000";
+		brd.fillStyle = "#21bd20";
 		brd.fillRect(casesize*mousex, casesize*mousey, casesize, casesize);
 		play();
+	}
+	function attaquepion(x, y, vec){
+		if(x > 0 && x < 9 && y+vec > 0 && y+vec < 9){
+			if(x < 8 && piecein[x+1][y+vec].color == reversecolor(piecein[x][y])){
+
+				possiblemove(x,1,y,vec,'right');
+			}
+			if(x > 1 && piecein[x-1][y+vec].color == reversecolor(piecein[x][y])){
+				possiblemove(x,-1,y,vec,'left');
+			}
+		}
 	}
 	function piecechoose(x,y){
 		cleararray(posmove);
@@ -204,74 +210,82 @@ function posattack(posx, addx,posy,addy,parlas){
 			downright: 1
 		};
 		pc.beginPath();
-		pc.fillStyle = "#aa0000";
+		pc.fillStyle = "#21bd20";
+		//possiblemove déplacement
 		switch(piecein[x][y]){
 			case pionNoir:
-			posattack(x,0,y,1,'down');
-			if(y == 2){
-			posattack(x,0,y,2,'down');
+			if(piecein[x][y+1] == 'rien'){
+				possiblemove(x,0,y,1,'down');
+				if(y == 2 && piecein[x][y+2] == 'rien'){
+					possiblemove(x,0,y,2,'down');
+				}
 			}
+			//attaque pion
+			attaquepion(x,y,1);
 			break;
 			case pionBlanc:
-			posattack(x,0,y,-1,'up');
-			if(y == 7){
-				posattack(x,0,y,-2,'up');
+			if(piecein[x][y-1] == 'rien'){
+			possiblemove(x,0,y,-1,'up');
+				if(y == 7 && piecein[x][y-2] == 'rien'){
+					possiblemove(x,0,y,-2,'up');
+				}
 			}
+			attaquepion(x,y,-1);
 			break;
 			case fouNoir:
 			case fouBlanc:
 			for(var i = 1; i < 8; i++){
-			posattack(x,i,y,i,'downright');
-			posattack(x,-i,y,i,'upleft');
-			posattack(x,i,y,-i,'upright');
-			posattack(x,-i,y,-i,'downleft');
+				possiblemove(x,i,y,i,'downright');
+				possiblemove(x,-i,y,i,'upleft');
+				possiblemove(x,i,y,-i,'upright');
+				possiblemove(x,-i,y,-i,'downleft');
 			}
 			break;
 			case chevalNoir:
 			case chevalBlanc:
-			posattack(x,1,y,2,'downright');
-			posattack(x,1,y,-2,'upright');
-			posattack(x,-1,y,2, 'downleft');
-			posattack(x,-1,y,-2, 'upleft');
-			posattack(x,-2,y,1, 'up');
-			posattack(x,-2,y,-1, 'down');
-			posattack(x,2,y,1, 'left');
-			posattack(x,2,y,-1, 'right');
+			possiblemove(x,1,y,2,'downright');
+			possiblemove(x,1,y,-2,'upright');
+			possiblemove(x,-1,y,2, 'downleft');
+			possiblemove(x,-1,y,-2, 'upleft');
+			possiblemove(x,-2,y,1, 'up');
+			possiblemove(x,-2,y,-1, 'down');
+			possiblemove(x,2,y,1, 'left');
+			possiblemove(x,2,y,-1, 'right');
 			break;
 			case tourNoir:
 			case tourBlanc:
 			for(var i = 1; i < 8; i++){
-				posattack(x,i,y,0,'right');
-				posattack(x,-i,y,0,'left');
-				posattack(x,0,y,i,'down');
-				posattack(x,0,y,-i,'up');
+				possiblemove(x,i,y,0,'right');
+				possiblemove(x,-i,y,0,'left');
+				possiblemove(x,0,y,i,'down');
+				possiblemove(x,0,y,-i,'up');
 			}
 			break;
 			case dameNoir:
 			case dameBlanc:
 			for(var i = 1; i < 8; i++){
-			posattack(x,i,y,i,'downright');
-			posattack(x,-i,y,i,'upleft');
-			posattack(x,i,y,-i,'upright');
-			posattack(x,-i,y,-i,'downleft');
+				possiblemove(x,i,y,i,'downright');
+				possiblemove(x,-i,y,i,'upleft');
+				possiblemove(x,i,y,-i,'upright');
+				possiblemove(x,-i,y,-i,'downleft');
 			}
 			for(var i = 1; i < 8; i++){
-				posattack(x,i,y,0,'right');
-				posattack(x,-i,y,0,'left');
-				posattack(x,0,y,i,'down');
-				posattack(x,0,y,-i,'up');
+				possiblemove(x,i,y,0,'right');
+				possiblemove(x,-i,y,0,'left');
+				possiblemove(x,0,y,i,'down');
+				possiblemove(x,0,y,-i,'up');
 			}
 			break;
 			case roiNoir:
 			case roiBlanc:
-			posattack(x,1,y,1, 'downright')
-			posattack(x,1,y,-1, 'upright')
-			posattack(x,-1,y,1, 'downleft')
-			posattack(x,-1,y,-1, 'upleft')
-			posattack(x,0,y,1, 'down')
-			posattack(x,1,y,0,'right')
-			posattack(x,0,y,-1,'up')
-			posattack(x,-1,y,0,'left')
+			possiblemove(x,1,y,1, 'downright')
+			possiblemove(x,1,y,-1, 'upright')
+			possiblemove(x,-1,y,1, 'downleft')
+			possiblemove(x,-1,y,-1, 'upleft')
+			possiblemove(x,0,y,1, 'down')
+			possiblemove(x,1,y,0,'right')
+			possiblemove(x,0,y,-1,'up')
+			possiblemove(x,-1,y,0,'left')
 		}
 	}
 	var	piecein = [];
@@ -323,6 +337,6 @@ function posattack(posx, addx,posy,addy,parlas){
 	piecein[6][7] = pionBlanc;
 	piecein[7][7] = pionBlanc;
 	piecein[8][7] = pionBlanc;
-	//déplacement/attaque//transformation pion
+	//transformation/fuite pion
 	//roque
-	//echec/clouer
+	//echec/pat/clouer
