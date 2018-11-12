@@ -8,8 +8,9 @@ var numbercase = 8;
 var marge = 8;
 var whiteisplaying = true;
 var click = false;
-var mousex = 1;
-var mousey = 1;
+var mousex = 4;
+var mousey = 4;
+var cote = Math.random() >= 0.5; 
 var prevposx = 0;
 var prevposy = 0;
 var playpiecex = -1;
@@ -113,14 +114,16 @@ function play(){
 					if(piecein[i][j] != 'rien'){
 						pc.drawImage(piecein[i][j].img, (i-1) * casesize, (j-1) * casesize, casesize, casesize);
 						if(piecein[i][j].color == 'blanc' && whiteisplaying == true){
-							if(mousex+1 == i && mousey+1 == j){
+							if(mousex == i && mousey == j){
+
 								piecechoose(i,j);
 								playpiecex = i;
 								playpiecey = j;
 							}
 						}
 						if(piecein[i][j].color == 'noir' && whiteisplaying == false){
-							if(mousex+1 == i && mousey+1 == j){
+							if(mousex == i && mousey == j){
+
 								piecechoose(i,j);
 								playpiecex = i;
 								playpiecey = j;
@@ -156,7 +159,6 @@ function possiblemove(posx, addx,posy,addy,parlas){
 
 	if(posx+addx < 9 && posx+addx > 0 && posy+addy < 9 && posy+addy > 0){
 		if(piecein[posx][posy].color == piecein[posx+addx][posy+addy].color){
-			console.log(posx,addx,posy,addy);
 			direction[parlas] = 0;
 		}
 		if(direction[parlas] == 1){
@@ -171,11 +173,11 @@ function possiblemove(posx, addx,posy,addy,parlas){
 	function casechoose(event){
 		var x = event.clientX - marge;
 		var y = event.clientY - marge;
-		mousex = Math.trunc(x/casesize);
-		mousey = Math.trunc(y/casesize);
-		if(posmove[mousex+1][mousey+1] == 'possible'){
-			piecein [mousex+1][mousey+1] = piecein[playpiecex][playpiecey];
-			piecein [prevposx+1][prevposy+1] = 'rien';
+		mousex = Math.trunc(x/casesize)+1;
+		mousey = Math.trunc(y/casesize)+1;
+		if(posmove[mousex][mousey] == 'possible'){
+			piecein [mousex][mousey] = piecein[playpiecex][playpiecey];
+			piecein [prevposx][prevposy] = 'rien';
 			whiteisplaying = (whiteisplaying+1)%2;
 			cleararray(posmove);
 		}
@@ -183,7 +185,8 @@ function possiblemove(posx, addx,posy,addy,parlas){
 		prevposy = mousey;
 		boardbase();
 		brd.fillStyle = "#21bd20";
-		brd.fillRect(casesize*mousex, casesize*mousey, casesize, casesize);
+		brd.fillRect(casesize*(mousex-1), casesize*(mousey-1), casesize, casesize);
+		console.log(mousex,mousey);
 		play();
 	}
 	function attaquepion(x, y, vec){
@@ -214,23 +217,24 @@ function possiblemove(posx, addx,posy,addy,parlas){
 		//possiblemove déplacement
 		switch(piecein[x][y]){
 			case pionNoir:
-			if(piecein[x][y+1] == 'rien'){
-				possiblemove(x,0,y,1,'down');
-				if(y == 2 && piecein[x][y+2] == 'rien'){
-					possiblemove(x,0,y,2,'down');
+			if(piecein[x][y+(piondir('noir'))] == 'rien'){
+				possiblemove(x,0,y,piondir('noir'),'down');
+				console.log(piondir('noir')*2);
+				if((y == 7|| y == 2) && piecein[x][y+(piondir('noir')*2)] == 'rien'){
+					possiblemove(x,0,y,piondir('noir')*2,'down');
 				}
 			}
 			//attaque pion
-			attaquepion(x,y,1);
+			attaquepion(x,y,piondir('noir'));
 			break;
 			case pionBlanc:
-			if(piecein[x][y-1] == 'rien'){
-			possiblemove(x,0,y,-1,'up');
-				if(y == 7 && piecein[x][y-2] == 'rien'){
-					possiblemove(x,0,y,-2,'up');
+			if(piecein[x][y+(piondir('blanc'))] == 'rien'){
+			possiblemove(x,0,y,piondir('blanc'),'up');
+				if((y == 7|| y == 2) && piecein[x][y+(piondir('blanc')*2)] == 'rien'){
+					possiblemove(x,0,y,piondir('blanc')*2,'up');
 				}
 			}
-			attaquepion(x,y,-1);
+			attaquepion(x,y,piondir('blanc'));
 			break;
 			case fouNoir:
 			case fouBlanc:
@@ -337,6 +341,30 @@ function possiblemove(posx, addx,posy,addy,parlas){
 	piecein[6][7] = pionBlanc;
 	piecein[7][7] = pionBlanc;
 	piecein[8][7] = pionBlanc;
-	//transformation/fuite pion
-	//roque
-	//echec/pat/clouer
+	function piondir(x){
+		if(cote == true){
+			if(x == 'blanc'){return 1;}else{return -1}
+		}else {if(x == 'blanc'){return -1;}else{return 1}}
+	}
+	if(cote == true){
+
+		//changer les piece de côté
+		for(var i = 1; i <= 8; i++){
+			for (var j = 0; j <= 4; j++) {
+						//inverser le roi et la dame
+						var centre = 0;
+						if(i == 4){centre = 1;}
+						if(i == 5){centre = -1;}
+				var enAttente = piecein[i][j];
+				piecein[i][j] = piecein[i+centre][Math.abs(j-9)];
+				piecein[i+centre][Math.abs(j-9)] = enAttente;
+			}
+		}
+	}
+	// transformation/fuite pion
+
+	// rand init
+
+	// roque
+
+	// echec/pat/clouer
