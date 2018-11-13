@@ -7,12 +7,13 @@ var dot = moveoptions.getContext("2d");
 var numbercase = 8;
 var marge = 8;
 var whiteisplaying = true;
-var click = false;
 var mousex = 4;
 var mousey = 4;
+var roiplays = false;
 var cote = Math.random() >= 0.5; 
 var prevposx = 0;
 var prevposy = 0;
+var echec = false;
 var testingallmoves = false;
 var playpiecex = -1;
 var playpiecey = -1;
@@ -43,109 +44,116 @@ boardbase();
 boardbase();
 var pionNoir = {
 	img: new Image(),
+	name:'pionNoir',
 	color:'noir'
 }
 var fouNoir = {
 	img: new Image(),
+	name:'fouNoir',
 	color:'noir'
 }
 var chevalNoir = {
 	img: new Image(),
+	name:'chevalNoir',
 	color:'noir'
 }
 var tourNoir = {
 	img: new Image(),
+	name:'tourNoir',
 	color:'noir'
 }
 var dameNoir = {
 	img: new Image(),
+	name:'dameNoir',
 	color:'noir'
 }
 var roiNoir = {
 	img: new Image(),
+	name:'roiNoir',
 	color:'noir'
 }
 var pionBlanc = {
 	img: new Image(),
+	name:'pionBlanc',
 	color:'blanc'
 }
 var fouBlanc = {
 	img: new Image(),
+	name:'fouBlanc',
 	color:'blanc'
 }
 var chevalBlanc = {
 	img: new Image(),
+	name:'chevalBlanc',
 	color:'blanc'
 }
 var tourBlanc = {
 	img: new Image(),
+	name:'tourBlanc',
 	color:'blanc'
 }
 var dameBlanc = {
 	img: new Image(),
+	name:'dameBlanc',
 	color:'blanc'
 }
 var roiBlanc = {
 	img: new Image(),
+	name:'roiBlanc',
 	color:'blanc'
 }
-	pionNoir.img.src = "chess_piece/pionNoir.png";
-	fouNoir.img.src = "chess_piece/fouNoir.png";
-	chevalNoir.img.src = "chess_piece/chevalNoir.png";
-	tourNoir.img.src = "chess_piece/tourNoir.png";
-	dameNoir.img.src = "chess_piece/dameNoir.png";
-	roiNoir.img.src = "chess_piece/roiNoir.png";
-	pionBlanc.img.src = "chess_piece/pionBlanc.png";
-	fouBlanc.img.src = "chess_piece/fouBlanc.png";
-	chevalBlanc.img.src = "chess_piece/chevalBlanc.png";
-	tourBlanc.img.src = "chess_piece/tourBlanc.png";
-	dameBlanc.img.src = "chess_piece/dameBlanc.png";
-	roiBlanc.img.src = "chess_piece/roiBlanc.png";
+pionNoir.img.src = "chess_piece/pionNoir.png";
+fouNoir.img.src = "chess_piece/fouNoir.png";
+chevalNoir.img.src = "chess_piece/chevalNoir.png";
+tourNoir.img.src = "chess_piece/tourNoir.png";
+dameNoir.img.src = "chess_piece/dameNoir.png";
+roiNoir.img.src = "chess_piece/roiNoir.png";
+pionBlanc.img.src = "chess_piece/pionBlanc.png";
+fouBlanc.img.src = "chess_piece/fouBlanc.png";
+chevalBlanc.img.src = "chess_piece/chevalBlanc.png";
+tourBlanc.img.src = "chess_piece/tourBlanc.png";
+dameBlanc.img.src = "chess_piece/dameBlanc.png";
+roiBlanc.img.src = "chess_piece/roiBlanc.png";
 
-	roiBlanc.img.onload = function(){
-		load = true;
-	}
-function play(){
-	if(load == true){
-		function afficherpiece(){
-			pc.clearRect(0, 0, 500,500);
-			dot.clearRect(0, 0, 500,500);
-			for(var i = 1; i <= numbercase; i++){
-				for (var j = 1; j <= numbercase; j++) {
-					if(piecein[i][j] != 'rien'){
-						pc.drawImage(piecein[i][j].img, (i-1) * casesize, (j-1) * casesize, casesize, casesize);
-						if(piecein[i][j].color == 'blanc' && whiteisplaying == true){
-							if(mousex == i && mousey == j){
-
-								piecechoose(i,j);
-								playpiecex = i;
-								playpiecey = j;
-							}
-						}
-						if(piecein[i][j].color == 'noir' && whiteisplaying == false){
-							if(mousex == i && mousey == j){
-
-								piecechoose(i,j);
-								playpiecex = i;
-								playpiecey = j;
-							}
-						}
+roiBlanc.img.onload = function(){
+	load = true;
+}
+function afficherpiece(){
+	pc.clearRect(0, 0, 500,500);
+	dot.clearRect(0, 0, 500,500);
+	for(var i = 1; i <= numbercase; i++){
+		for (var j = 1; j <= numbercase; j++) {
+			if(piecein[i][j] != 'rien'){
+				pc.drawImage(piecein[i][j].img, (i-1) * casesize, (j-1) * casesize, casesize, casesize);
+				if(piecein[i][j].color == 'blanc' && whiteisplaying == true){
+					if(mousex == i && mousey == j){
+						piecechoose(i,j);
+						playpiecex = i;
+						playpiecey = j;
 					}
-				}	
+				}
+				if(piecein[i][j].color == 'noir' && whiteisplaying == false){
+					if(mousex == i && mousey == j){
+						piecechoose(i,j);
+						playpiecex = i;
+						playpiecey = j;
+					}
+				}
 			}
-		}
-		afficherpiece();
-		possiblenextattaque();
-		//afficher dot
-		for(var i = 1; i <= 8 ;i++){
+		}	
+	}
+}
+function afficherdot(){
+			for(var i = 1; i <= 8 ;i++){
 			for (var j = 1; j <= 8; j++) {
-				if(posmove[i][j] == 'possible'){
-					drawdot(i,j,"#0000aa");
+				if(posAdvmove[i][j] == 'possible'){
 					//echec
 					if(piecein[i][j] == roiNoir || piecein[i][j] == roiBlanc){
 						console.log('echec');
+						echec = true;
+						brd.fillStyle = '#ff9916';
+						brd.fillRect(casesize*(i-1), casesize*(j-1), casesize, casesize);
 					}
-					
 				}
 				if(pospiecemove[i][j] == 'possible'){
 					drawdot(i,j,"#21bd20");
@@ -153,6 +161,12 @@ function play(){
 				
 			}
 		}
+}
+function play(){
+	if(load == true){
+		afficherpiece();
+		possiblenextattaque();
+		afficherdot();
 	}else{setTimeout(function(){play();},1);}
 }
 	play();
@@ -174,8 +188,12 @@ function possiblemove(posx, addx,posy,addy,parlas){
 		}
 		if(direction[parlas] == 1){
 			if(testingallmoves == false){
-				pospiecemove[posx+addx][posy+addy] = 'possible';
-			}else{posmove[posx+addx][posy+addy] = 'possible';}
+				if(roiplays == false){
+					pospiecemove[posx+addx][posy+addy] = 'possible';
+				}else if(posAdvmove[posx+addx][posy+addy] != 'possible'){
+					pospiecemove[posx+addx][posy+addy] = 'possible';
+				}
+			}else{posAdvmove[posx+addx][posy+addy] = 'possible';}
 		}
 		if(piecein[posx][posy].color == reversecolor(piecein[posx+addx][posy+addy])){
 			direction[parlas] = 0;
@@ -192,8 +210,16 @@ function possiblemove(posx, addx,posy,addy,parlas){
 			piecein [mousex][mousey] = piecein[playpiecex][playpiecey];
 			piecein [prevposx][prevposy] = 'rien';
 			whiteisplaying = (whiteisplaying+1)%2;
+			nombrecoup ++;
+			histo[nombrecoup*4] = nombrecoup;
+			histo[nombrecoup*4+1] = piecein [mousex][mousey].name;
+			histo[nombrecoup*4+2] = mousex;
+			histo[nombrecoup*4+3] = mousey;
+			for(var i = 0; i < 4 ; i++){
+				console.log(histo[nombrecoup*4+i])
+			}
 			cleararray(pospiecemove);
-			cleararray(posmove);
+			cleararray(posAdvmove);
 		}
 		prevposx = mousex;
 		prevposy = mousey;
@@ -285,9 +311,11 @@ function possiblemove(posx, addx,posy,addy,parlas){
 			break;
 			case roiNoir:
 			case roiBlanc:
+			roiplays = true;
 			var i = 1;
 			tourmove(x,y,i);
 			foumove(x,y,i);
+			roiplays = false;
 		}
 	}
 	function piecechoose(x,y){
@@ -315,10 +343,10 @@ function possiblemove(posx, addx,posy,addy,parlas){
 		}
 	}
 		var	piecein = [];
-		var posmove = [];
+		var posAdvmove = [];
 		var pospiecemove = [];
 		cleararray(piecein);
-		cleararray(posmove);
+		cleararray(posAdvmove);
 		cleararray(pospiecemove);
 	function cleararray(x){
 		for(var i = 1; i <= numbercase; i++){
@@ -385,6 +413,9 @@ function possiblemove(posx, addx,posy,addy,parlas){
 			}
 		}
 	}
+	var histo = [];
+	var nombrecoup = 0;
+
 	// transformation/fuite pion
 
 	// roque
