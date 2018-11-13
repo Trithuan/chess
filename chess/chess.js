@@ -61,7 +61,8 @@ var chevalNoir = {
 var tourNoir = {
 	img: new Image(),
 	name:'tourNoir',
-	color:'noir'
+	color:'noir',
+	didmove:false
 }
 var dameNoir = {
 	img: new Image(),
@@ -71,7 +72,8 @@ var dameNoir = {
 var roiNoir = {
 	img: new Image(),
 	name:'roiNoir',
-	color:'noir'
+	color:'noir',
+	didmove:false
 }
 var pionBlanc = {
 	img: new Image(),
@@ -91,7 +93,8 @@ var chevalBlanc = {
 var tourBlanc = {
 	img: new Image(),
 	name:'tourBlanc',
-	color:'blanc'
+	color:'blanc',
+	didmove:false
 }
 var dameBlanc = {
 	img: new Image(),
@@ -101,7 +104,8 @@ var dameBlanc = {
 var roiBlanc = {
 	img: new Image(),
 	name:'roiBlanc',
-	color:'blanc'
+	color:'blanc',
+	didmove:false
 }
 pionNoir.img.src = "chess_piece/pionNoir.png";
 fouNoir.img.src = "chess_piece/fouNoir.png";
@@ -211,6 +215,13 @@ function possiblemove(posx, addx,posy,addy,parlas){
 			piecein [mousex][mousey] = piecein[playpiecex][playpiecey];
 			piecein [playpiecex][playpiecey] = 'rien';
 			whiteisplaying = (whiteisplaying+1)%2;
+			console.log(mousey);
+			//transformation
+			if((mousey == 1 || mousey == 8) && (piecein[mousex][mousey] == pionNoir || piecein[mousex][mousey] == pionBlanc)){
+				if(piecein[mousex][mousey].color == 'noir'){
+					piecein[mousex][mousey] = dameNoir;
+				}else{piecein[mousex][mousey] = dameBlanc;}
+			}
 			nombrecoup ++;
 			histo[nombrecoup*4] = nombrecoup;
 			histo[nombrecoup*4+1] = piecein[mousex][mousey].name;
@@ -412,9 +423,8 @@ function possiblemove(posx, addx,posy,addy,parlas){
 	}
 	var histo = [];
 	var nombrecoup = 0;
+	//fuite pion
 
-	// transformation/fuite pion
-
-	// roque
+	//roque
 
 	// echec/pat/clouer
