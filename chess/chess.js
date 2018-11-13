@@ -13,6 +13,7 @@ var mousey = 4;
 var cote = Math.random() >= 0.5; 
 var prevposx = 0;
 var prevposy = 0;
+var testingallmoves = false;
 var playpiecex = -1;
 var playpiecey = -1;
 var direction = {
@@ -134,12 +135,22 @@ function play(){
 			}
 		}
 		afficherpiece();
+		possiblenextattaque();
 		//afficher dot
 		for(var i = 1; i <= 8 ;i++){
 			for (var j = 1; j <= 8; j++) {
 				if(posmove[i][j] == 'possible'){
-					drawdot(i,j);
+					drawdot(i,j,"#0000aa");
+					//echec
+					if(piecein[i][j] == roiNoir || piecein[i][j] == roiBlanc){
+						console.log('echec');
+					}
+					
 				}
+				if(pospiecemove[i][j] == 'possible'){
+					drawdot(i,j,"#21bd20");
+				}
+				
 			}
 		}
 	}else{setTimeout(function(){play();},1);}
@@ -149,8 +160,8 @@ function play(){
 		if (piece.color == 'noir'){return 'blanc';}
 			else if(piece.color == 'blanc'){return 'noir';}
 	}
-	function drawdot(x,y){
-		dot.fillStyle ="#21bd20";
+	function drawdot(x,y,color){
+		dot.fillStyle = color;
 		dot.beginPath();
 		dot.arc(casesize*(x-1) + (casesize/2),casesize*(y-1) + (casesize/2), 10, 0, 360);
 		dot.fill();
@@ -162,7 +173,9 @@ function possiblemove(posx, addx,posy,addy,parlas){
 			direction[parlas] = 0;
 		}
 		if(direction[parlas] == 1){
-			posmove[posx+addx][posy+addy] = 'possible';
+			if(testingallmoves == false){
+				pospiecemove[posx+addx][posy+addy] = 'possible';
+			}else{posmove[posx+addx][posy+addy] = 'possible';}
 		}
 		if(piecein[posx][posy].color == reversecolor(piecein[posx+addx][posy+addy])){
 			direction[parlas] = 0;
@@ -175,10 +188,11 @@ function possiblemove(posx, addx,posy,addy,parlas){
 		var y = event.clientY - marge;
 		mousex = Math.trunc(x/casesize)+1;
 		mousey = Math.trunc(y/casesize)+1;
-		if(posmove[mousex][mousey] == 'possible'){
+		if(pospiecemove[mousex][mousey] == 'possible'){
 			piecein [mousex][mousey] = piecein[playpiecex][playpiecey];
 			piecein [prevposx][prevposy] = 'rien';
 			whiteisplaying = (whiteisplaying+1)%2;
+			cleararray(pospiecemove);
 			cleararray(posmove);
 		}
 		prevposx = mousex;
@@ -186,22 +200,9 @@ function possiblemove(posx, addx,posy,addy,parlas){
 		boardbase();
 		brd.fillStyle = "#21bd20";
 		brd.fillRect(casesize*(mousex-1), casesize*(mousey-1), casesize, casesize);
-		console.log(mousex,mousey);
 		play();
 	}
-	function attaquepion(x, y, vec){
-		if(x > 0 && x < 9 && y+vec > 0 && y+vec < 9){
-			if(x < 8 && piecein[x+1][y+vec].color == reversecolor(piecein[x][y])){
-
-				possiblemove(x,1,y,vec,'right');
-			}
-			if(x > 1 && piecein[x-1][y+vec].color == reversecolor(piecein[x][y])){
-				possiblemove(x,-1,y,vec,'left');
-			}
-		}
-	}
-	function piecechoose(x,y){
-		cleararray(posmove);
+	function resetdir(){
 		direction = {
 			left: 1,
 			right: 1,
@@ -212,90 +213,113 @@ function possiblemove(posx, addx,posy,addy,parlas){
 			downleft: 1,
 			downright: 1
 		};
-		pc.beginPath();
-		pc.fillStyle = "#21bd20";
-		//possiblemove déplacement
+	}
+	function movepion(x,y,vec,couleur){
+		if(piecein[x][y+(piondir(couleur))] == 'rien'){
+			possiblemove(x,0,y,piondir(couleur),'down');
+			if((y == 7|| y == 2) && piecein[x][y+(piondir(couleur)*2)] == 'rien'){
+				possiblemove(x,0,y,piondir(couleur)*2,'down');
+			}
+		}
+		if(x > 0 && x < 9 && y+vec > 0 && y+vec < 9){
+			if(x < 8 && piecein[x+1][y+vec].color == reversecolor(piecein[x][y])){
+				possiblemove(x,1,y,vec,'right');
+			}
+			if(x > 1 && piecein[x-1][y+vec].color == reversecolor(piecein[x][y])){
+				possiblemove(x,-1,y,vec,'left');
+			}
+		}
+	}
+	function foumove(x,y,i){
+		possiblemove(x,i,y,i,'downright');
+		possiblemove(x,-i,y,i,'upleft');
+		possiblemove(x,i,y,-i,'upright');
+		possiblemove(x,-i,y,-i,'downleft');
+	}
+	function chevalmove(x,y){
+		possiblemove(x,1,y,2,'downright');
+		possiblemove(x,1,y,-2,'upright');
+		possiblemove(x,-1,y,2, 'downleft');
+		possiblemove(x,-1,y,-2, 'upleft');
+		possiblemove(x,-2,y,1, 'up');
+		possiblemove(x,-2,y,-1, 'down');
+		possiblemove(x,2,y,1, 'left');
+		possiblemove(x,2,y,-1, 'right');
+	}
+	function tourmove(x,y,i){
+		possiblemove(x,i,y,0,'right');
+		possiblemove(x,-i,y,0,'left');
+		possiblemove(x,0,y,i,'down');
+		possiblemove(x,0,y,-i,'up');
+	}
+	function allmoves(x,y){
 		switch(piecein[x][y]){
 			case pionNoir:
-			if(piecein[x][y+(piondir('noir'))] == 'rien'){
-				possiblemove(x,0,y,piondir('noir'),'down');
-				console.log(piondir('noir')*2);
-				if((y == 7|| y == 2) && piecein[x][y+(piondir('noir')*2)] == 'rien'){
-					possiblemove(x,0,y,piondir('noir')*2,'down');
-				}
-			}
-			//attaque pion
-			attaquepion(x,y,piondir('noir'));
+			movepion(x,y,piondir('noir'),'noir');
 			break;
 			case pionBlanc:
-			if(piecein[x][y+(piondir('blanc'))] == 'rien'){
-			possiblemove(x,0,y,piondir('blanc'),'up');
-				if((y == 7|| y == 2) && piecein[x][y+(piondir('blanc')*2)] == 'rien'){
-					possiblemove(x,0,y,piondir('blanc')*2,'up');
-				}
-			}
-			attaquepion(x,y,piondir('blanc'));
+			movepion(x,y,piondir('blanc'),'blanc')
 			break;
 			case fouNoir:
 			case fouBlanc:
 			for(var i = 1; i < 8; i++){
-				possiblemove(x,i,y,i,'downright');
-				possiblemove(x,-i,y,i,'upleft');
-				possiblemove(x,i,y,-i,'upright');
-				possiblemove(x,-i,y,-i,'downleft');
+				foumove(x,y,i);
 			}
 			break;
 			case chevalNoir:
 			case chevalBlanc:
-			possiblemove(x,1,y,2,'downright');
-			possiblemove(x,1,y,-2,'upright');
-			possiblemove(x,-1,y,2, 'downleft');
-			possiblemove(x,-1,y,-2, 'upleft');
-			possiblemove(x,-2,y,1, 'up');
-			possiblemove(x,-2,y,-1, 'down');
-			possiblemove(x,2,y,1, 'left');
-			possiblemove(x,2,y,-1, 'right');
+			chevalmove(x,y);
 			break;
 			case tourNoir:
 			case tourBlanc:
 			for(var i = 1; i < 8; i++){
-				possiblemove(x,i,y,0,'right');
-				possiblemove(x,-i,y,0,'left');
-				possiblemove(x,0,y,i,'down');
-				possiblemove(x,0,y,-i,'up');
+				tourmove(x,y,i);
 			}
 			break;
 			case dameNoir:
 			case dameBlanc:
 			for(var i = 1; i < 8; i++){
-				possiblemove(x,i,y,i,'downright');
-				possiblemove(x,-i,y,i,'upleft');
-				possiblemove(x,i,y,-i,'upright');
-				possiblemove(x,-i,y,-i,'downleft');
-			}
-			for(var i = 1; i < 8; i++){
-				possiblemove(x,i,y,0,'right');
-				possiblemove(x,-i,y,0,'left');
-				possiblemove(x,0,y,i,'down');
-				possiblemove(x,0,y,-i,'up');
+				tourmove(x,y,i);
+				foumove(x,y,i);
 			}
 			break;
 			case roiNoir:
 			case roiBlanc:
-			possiblemove(x,1,y,1, 'downright')
-			possiblemove(x,1,y,-1, 'upright')
-			possiblemove(x,-1,y,1, 'downleft')
-			possiblemove(x,-1,y,-1, 'upleft')
-			possiblemove(x,0,y,1, 'down')
-			possiblemove(x,1,y,0,'right')
-			possiblemove(x,0,y,-1,'up')
-			possiblemove(x,-1,y,0,'left')
+			var i = 1;
+			tourmove(x,y,i);
+			foumove(x,y,i);
 		}
 	}
-	var	piecein = [];
-	var posmove = [];
-	cleararray(piecein);
-	cleararray(posmove);
+	function piecechoose(x,y){
+		testingallmoves = false;
+		cleararray(pospiecemove);
+		resetdir();
+		pc.beginPath();
+		pc.fillStyle = "#21bd20";
+		//possiblemove déplacement
+		allmoves(x,y);
+	}
+	function possiblenextattaque(){
+		testingallmoves = true;
+		for(var i = 1; i <= 8; i++){
+			for(var j = 1; j <= 8; j++){
+				if(piecein[i][j].color == 'blanc' && whiteisplaying == false){
+					resetdir();
+					allmoves(i,j);
+				}
+				if(piecein[i][j].color == 'noir' && whiteisplaying == true){
+					resetdir();
+					allmoves(i,j);
+				}
+			}
+		}
+	}
+		var	piecein = [];
+		var posmove = [];
+		var pospiecemove = [];
+		cleararray(piecein);
+		cleararray(posmove);
+		cleararray(pospiecemove);
 	function cleararray(x){
 		for(var i = 1; i <= numbercase; i++){
 			x[i] = [];
@@ -348,7 +372,7 @@ function possiblemove(posx, addx,posy,addy,parlas){
 	}
 	if(cote == true){
 
-		//changer les piece de côté
+		//changer les pieces de côté
 		for(var i = 1; i <= 8; i++){
 			for (var j = 0; j <= 4; j++) {
 						//inverser le roi et la dame
@@ -362,8 +386,6 @@ function possiblemove(posx, addx,posy,addy,parlas){
 		}
 	}
 	// transformation/fuite pion
-
-	// rand init
 
 	// roque
 
