@@ -8,6 +8,7 @@ var numbercase = 8;
 var marge = 8;
 var whiteisplaying = true;
 var mousex = 4;
+var actualmove;
 var mousey = 4;
 var roiplays = false;
 var cote = Math.random() >= 0.5; 
@@ -208,16 +209,15 @@ function possiblemove(posx, addx,posy,addy,parlas){
 		mousey = Math.trunc(y/casesize)+1;
 		if(pospiecemove[mousex][mousey] == 'possible'){
 			piecein [mousex][mousey] = piecein[playpiecex][playpiecey];
-			piecein [prevposx][prevposy] = 'rien';
+			piecein [playpiecex][playpiecey] = 'rien';
 			whiteisplaying = (whiteisplaying+1)%2;
 			nombrecoup ++;
 			histo[nombrecoup*4] = nombrecoup;
-			histo[nombrecoup*4+1] = piecein [mousex][mousey].name;
+			histo[nombrecoup*4+1] = piecein[mousex][mousey].name;
 			histo[nombrecoup*4+2] = mousex;
 			histo[nombrecoup*4+3] = mousey;
-			for(var i = 0; i < 4 ; i++){
-				console.log(histo[nombrecoup*4+i])
-			}
+			actualmove = nombrecoup + " : " + piecein[mousex][mousey].name + "[" + mousex + "," + mousey + "]";
+			console.log(actualmove);
 			cleararray(pospiecemove);
 			cleararray(posAdvmove);
 		}
@@ -322,9 +322,6 @@ function possiblemove(posx, addx,posy,addy,parlas){
 		testingallmoves = false;
 		cleararray(pospiecemove);
 		resetdir();
-		pc.beginPath();
-		pc.fillStyle = "#21bd20";
-		//possiblemove déplacement
 		allmoves(x,y);
 	}
 	function possiblenextattaque(){
