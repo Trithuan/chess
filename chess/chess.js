@@ -216,9 +216,8 @@ function casechoose(event){
 	mousex = Math.trunc(x/casesize)+1;
 	mousey = Math.trunc(y/casesize)+1;
 	if(pospiecemove[mousex][mousey] == 'possible'){
-		if(piecein [mousex][mousey] != 'rien'){
-			eatenpiece = piecein [mousex][mousey];
-		}
+		eatenpiece = piecein [mousex][mousey];
+		console.log('vide');
 		piecein [mousex][mousey] = piecein[playpiecex][playpiecey];
 		piecein [playpiecex][playpiecey] = 'rien';
 		whiteisplaying = (whiteisplaying+1)%2;
@@ -236,7 +235,10 @@ function casechoose(event){
 		histo[nombrecoup*7+4] = piecein[mousex][mousey];
 		histo[nombrecoup*7+5] = mousex;
 		histo[nombrecoup*7+6] = mousey;
-		actualmove = nombrecoup + " : ["+ String.fromCharCode(64+playpiecex) + playpiecey+ "]" + piecein[mousex][mousey].name + "[" + String.fromCharCode(64+mousex) + mousey +"] mange : " + eatenpiece.name;
+		if(eatenpiece != 'rien'){
+			eatenpiece = eatenpiece.name;
+		}
+		actualmove = nombrecoup + " : " + piecein[mousex][mousey].name +"["+ String.fromCharCode(64+playpiecex) + playpiecey+ "] mange : "+ eatenpiece + "[" + String.fromCharCode(64+mousex) + mousey +"]";
 
 		console.log(actualmove); 
 		cleararray(pospiecemove);
